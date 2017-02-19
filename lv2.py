@@ -123,7 +123,7 @@ def lv2(print_list=False, plugin_index=0):
 
     instance.run(sample_count=100)
     
-    print(data)
+    print(audio_data)
 
     print('Deactivating plugin ..')
     instance.deactivate()

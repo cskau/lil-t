@@ -8,6 +8,32 @@ Note: these tools require various libraries and system services to be of any use
 - https://github.com/moddevices/mod-host
 
 
+## Setup
+
+```
+$ sudo apt-get install python-tk
+```
+
+If you're on a system that doesn't have, say, python-jack-client in the package
+manager (like Raspbian), you can install some of them through PIP:
+```
+$ sudo apt-get install libffi-dev
+$ sudo pip install JACK-Client
+```
+
+Mido:
+```
+$ sudo apt-get install libportmidi0 libportmidi-dev
+$ sudo pip install python-rtmidi
+$ sudo pip install mido
+```
+
+Numpy:
+```
+$ sudo apt-get install python-numpy
+```
+
+
 ## lil-ui.py
 
 Create a really simple UI for mod-host loads plugins and controls parameters
@@ -99,7 +125,7 @@ Sending MIDI note 60 with velocity 60 at 60 BPM
 
 Or a specific port, note, velocity and BPM (note toggles per minute):
 ```
-./midi_out.py -p 1 -n 64 -v 100 -b 30
+$ ./midi_out.py -p 1 -n 64 -v 100 -b 30
 Opening port for output: Teensy MIDI MIDI 1
 Sending MIDI note 64 with velocity 100 at 30 BPM
 ```
