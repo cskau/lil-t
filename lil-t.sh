@@ -32,7 +32,7 @@ case "$1" in
     # killall lil-t
     ;;
   *)
-    echo "Usage: /etc/init.d/noip {start|stop}"
+    echo "Usage: /etc/init.d/lil-t.sh {start|stop}"
     exit 1
     ;;
 esac
