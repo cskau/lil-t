@@ -23,9 +23,12 @@ $ speaker-test -t sine -c 2
 
 ## System setup
 
-Configure overlay to pipe PWM to BCM pins 13 and 18 by adding to `/boot/config.txt`:
+Configure overlay to pipe PWM to BCM pins 13 and 18, and remove hissing
+background noise by disabling dithering:
+Add to `/boot/config.txt`:
 ```
 dtoverlay=pwm-2chan,pin=18,func=2,pin2=13,func2=4
+disable_audio_dither=1
 ```
 
 Packages to `$ sudo apt-get install`:
@@ -109,17 +112,23 @@ Test the newly added services:
 ```
 $ sudo systemctl start jackd.service
 $ sudo systemctl start mod-host.service
+$ sudo systemctl start a2jmidid.service
+$ sudo systemctl start demo.service
 ```
 
 ```
 $ sudo systemctl status jackd.service
 $ sudo systemctl status mod-host.service
+$ sudo systemctl start a2jmidid.service
+$ sudo systemctl start demo.service
 ```
 
 Enable the service:
 ```
 $ sudo systemctl enable jackd.service
 $ sudo systemctl enable mod-host.service
+$ sudo systemctl start a2jmidid.service
+$ sudo systemctl start demo.service
 ```
 
 
@@ -127,7 +136,8 @@ $ sudo systemctl enable mod-host.service
 
 Manually tell mod-host to load Qin:
 ```
-$ echo -n 'add http://magnus.smartelectronix.com/lv2/synth/qin 0' | nc localhost 5555
+$ echo -n 'add http://magnus.smartelectronix.com/lv2/synth/qin 0' | nc -w1 localhost 5555
+$ nc -w1 localhost 5556
 ```
 
 Print all JACK port and their connections:
