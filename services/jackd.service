@@ -1,0 +1,10 @@
+[Unit]
+Description=Start JACK
+
+[Service]
+ExecStart=/usr/bin/dbus-launch /usr/bin/jackd -dalsa -Phw:ALSA,0 -Xseq
+ExecStop=killall jackd
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target
