@@ -120,3 +120,11 @@ Enable the service:
 $ sudo systemctl enable jackd.service
 $ sudo systemctl enable mod-host.service
 ```
+
+
+## Test system
+
+Manually tell mod-host to load Qin:
+```
+echo -n 'add http://magnus.smartelectronix.com/lv2/synth/qin 0' | nc localhost 5555
+```
