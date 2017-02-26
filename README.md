@@ -24,7 +24,8 @@ $ speaker-test -t sine -c 2
 ## System setup
 
 Configure overlay to pipe PWM to BCM pins 13 and 18, and remove hissing
-background noise by disabling dithering:
+background noise by disabling dithering.
+
 Add to `/boot/config.txt`:
 ```
 dtoverlay=pwm-2chan,pin=18,func=2,pin2=13,func2=4
