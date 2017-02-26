@@ -2,7 +2,7 @@
 Description=mod-host server
 
 [Service]
-ExecStart=mod-host -p 5555
+ExecStart=/usr/local/bin/mod-host -p 5555
 ExecStop=killall mod-host
 Restart=on-failure
 
