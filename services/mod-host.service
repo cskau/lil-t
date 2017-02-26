@@ -1,11 +1,14 @@
 [Unit]
 Description=mod-host server
+After=jackd.service
 
 [Service]
 Type=forking
 ExecStart=/usr/local/bin/mod-host -p 5555
 ExecStop=killall mod-host
-Restart=on-failure
+Restart=always
+RestartSec=4
+Group=audio
 
 [Install]
 WantedBy=multi-user.target

@@ -37,6 +37,7 @@ autogen
 automake
 jackd2
 dbus-x11
+a2jmidid
 python-dev
 python-tk
 python-numpy
@@ -126,5 +127,16 @@ $ sudo systemctl enable mod-host.service
 
 Manually tell mod-host to load Qin:
 ```
-echo -n 'add http://magnus.smartelectronix.com/lv2/synth/qin 0' | nc localhost 5555
+$ echo -n 'add http://magnus.smartelectronix.com/lv2/synth/qin 0' | nc localhost 5555
+```
+
+Print all JACK port and their connections:
+```
+$ sudo jack_lsp -c
+```
+
+Connect some JACK ports:
+```
+$ sudo jack_connect effect_0:output system:playback_1
+$ sudo jack_connect effect_0:output system:playback_2
 ```

@@ -1,0 +1,12 @@
+[Unit]
+Description=Start a2jmidid
+
+[Service]
+ExecStart=/usr/bin/a2jmidid -e
+ExecStop=killall a2jmidid
+Restart=always
+RestartSec=4
+Group=audio
+
+[Install]
+WantedBy=multi-user.target
