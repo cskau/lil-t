@@ -4,7 +4,7 @@ The following is an experiment in setting a Raspberry Pi (Zero) up as a
 soft-synth device, hosting LV2 plug-ins.
 
 
-## Examine the system you're configuring:
+## Examine the system
 List ALSA playback interfaces:
 ```
 $ aplay -L
@@ -86,13 +86,13 @@ $ make ; sudo make install
 ```
 
 
-## Some post-setup testing
+## Post-setup testing
 
 Check if JACK will run and can claim the interface:
 ```
 $ dbus-launch jackd -dalsa -Phw:ALSA,0 -Xseq
 ```
-Ctrl-C to kill the process if it succesfully starts and runs.
+Ctrl-C to kill the process if it successfully starts and runs.
 
 
 ## Install services
@@ -104,12 +104,19 @@ Copy `*.service` files into `/etc/systemd/system/`:
 $ sudo cp ./services/*.services /etc/systemd/system/
 ```
 
-Test the newly added service:
+Test the newly added services:
 ```
-$ systemctl start jackd.service
+$ sudo systemctl start jackd.service
+$ sudo systemctl start mod-host.service
+```
+
+```
+$ sudo systemctl status jackd.service
+$ sudo systemctl status mod-host.service
 ```
 
 Enable the service:
 ```
-$ systemctl enable jackd.service
+$ sudo systemctl enable jackd.service
+$ sudo systemctl enable mod-host.service
 ```
