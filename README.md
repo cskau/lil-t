@@ -28,7 +28,7 @@ Configure overlay to pipe PWM to BCM pins 13 and 18 by adding to `/boot/config.t
 dtoverlay=pwm-2chan,pin=18,func=2,pin2=13,func2=4
 ```
 
-Packages to `sudo apt-get install`:
+Packages to `$ sudo apt-get install`:
 ```
 git
 python-pip
@@ -48,7 +48,7 @@ libasound2-dev
 libjack-jackd2-dev
 ```
 
-Python modules to `sudo pip install`:
+Python modules to `$ sudo pip install`:
 ```
 JACK-Client
 python-rtmidi
@@ -90,7 +90,7 @@ $ make ; sudo make install
 
 Check if JACK will run and can claim the interface:
 ```
-dbus-launch jackd -dalsa -Phw:ALSA,0 -Xseq
+$ dbus-launch jackd -dalsa -Phw:ALSA,0 -Xseq
 ```
 Ctrl-C to kill the process if it succesfully starts and runs.
 
