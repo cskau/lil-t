@@ -1,0 +1,10 @@
+[Unit]
+Description=mod-host server
+
+[Service]
+ExecStart=mod-host -p 5555
+ExecStop=killall mod-host
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target
