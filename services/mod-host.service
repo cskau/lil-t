@@ -2,6 +2,7 @@
 Description=mod-host server
 
 [Service]
+Type=forking
 ExecStart=/usr/local/bin/mod-host -p 5555
 ExecStop=killall mod-host
 Restart=on-failure
