@@ -1,5 +1,7 @@
 [Unit]
 Description=Start a2jmidid
+Requires=jackd.service
+After=jackd.service
 
 [Service]
 ExecStart=/usr/bin/a2jmidid -e

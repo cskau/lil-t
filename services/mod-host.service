@@ -1,5 +1,6 @@
 [Unit]
 Description=mod-host server
+Requires=jackd.service
 After=jackd.service
 
 [Service]
