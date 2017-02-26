@@ -3,7 +3,7 @@ Description=Start JACK
 
 [Service]
 ExecStart=/usr/bin/dbus-launch /usr/bin/jackd -R -dalsa -Phw:ALSA,0 -r48000 -p4096 -n4 -S
-ExecStop=killall jackd
+ExecStop=/usr/bin/killall jackd
 Restart=always
 RestartSec=1
 Group=audio

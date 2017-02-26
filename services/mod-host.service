@@ -5,7 +5,7 @@ After=jackd.service
 [Service]
 Type=forking
 ExecStart=/usr/local/bin/mod-host -p 5555
-ExecStop=killall mod-host
+ExecStop=/usr/bin/killall mod-host
 Restart=always
 RestartSec=4
 Group=audio

@@ -3,7 +3,7 @@ Description=Start a2jmidid
 
 [Service]
 ExecStart=/usr/bin/a2jmidid -e
-ExecStop=killall a2jmidid
+ExecStop=/usr/bin/killall a2jmidid
 Restart=always
 RestartSec=4
 Group=audio
