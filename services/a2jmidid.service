@@ -7,6 +7,7 @@ ExecStop=/usr/bin/killall a2jmidid
 Restart=always
 RestartSec=4
 Group=audio
+Environment="HOME=/home/pi/"
 
 [Install]
 WantedBy=multi-user.target
