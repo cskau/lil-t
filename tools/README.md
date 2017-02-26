@@ -1,4 +1,4 @@
-# lil-t
+# lil-t tools
 
 Note: these tools require various libraries and system services to be of any use.
 
