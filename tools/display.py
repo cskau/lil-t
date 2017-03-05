@@ -76,6 +76,7 @@ class Mod():
 
 
   def on_midi_event(self, midi_output_name, message):
+    logger.info('midi(%s): %s', midi_output_name, message)
     val = ((message.note - 53) / 23.0) * 100
     self.set_param(0, 'volume', val)
 
@@ -97,14 +98,15 @@ class Mod():
 
           symbol = port.get_symbol()
           resp = self.get_param(0, symbol)
-          resp_parts = resp.split(' ')
-          if len(resp_parts) == 3:
-            resp_header, resp_channel, resp_val = resp_parts
-            val = float(resp_val[:6])
+          if resp:
+            resp_parts = resp.split(' ')
+            if len(resp_parts) == 3:
+              resp_header, resp_channel, resp_val = resp_parts
+              val = float(resp_val[:6])
 
           frame_ui.draw_knob(x, y, (val, min_val, max_val))
           x += 40
-          if x >= 140:
+          if x >= 100:
             x = 20
             y += 40
 
