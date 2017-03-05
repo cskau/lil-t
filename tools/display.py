@@ -45,6 +45,10 @@ COLOURS = [
   '#966757', # brown
 ]
 
+FONT = '~/.fonts/Dosis-Light.ttf', # !
+# '~/.fonts/Advent_Pro/AdventPro-Light.ttf', # !
+# '~/.fonts/Abel/Abel-Regular.ttf', # !
+
 
 ##
 class Mod():
@@ -177,9 +181,7 @@ class FrameUI():
     self.draw = ImageDraw.Draw(self.image)
 
     self.font = ImageFont.truetype(
-        '~/.fonts/Dosis/Dosis-Light.ttf', # !
-        # '~/.fonts/Advent_Pro/AdventPro-Light.ttf', # !
-        # '~/.fonts/Abel/Abel-Regular.ttf', # !
+        FONT,
         self.size,
         )
 
@@ -214,7 +216,7 @@ class FrameUI():
 
   def draw_knob(self, x, y, vr):
     val, val_min, val_max = vr
-    deg = 360 * (float(val - val_min) / float(val_max - val_min))
+    deg = int(360 * (float(val - val_min) / float(val_max - val_min)))
     self.draw.pieslice(
         ((x, y), (x+30, y+30)),
         -90,
