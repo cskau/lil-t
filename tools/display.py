@@ -76,7 +76,7 @@ class Mod():
     self.set_param(0, 'volume', val)
 
 
-  def render_loop(self, frame_ui, frame_callback, scale=1, delay=FRAME_DELAY):
+  def render_loop(self, frame_ui, frame_callback, scale=1, delay=FRAME_DELAY_SECONDS):
     while True:
       plugin = self.plugin_map['urn:50m30n3:plugins:SO-666']
 
@@ -113,7 +113,7 @@ class Mod():
 
       frame_callback(frame)
 
-      sleep(FRAME_DELAY_SECONDS)
+      sleep(delay)
 
 
   def open_socket(self, host='localhost', port=5555):
