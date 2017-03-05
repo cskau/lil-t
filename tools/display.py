@@ -45,9 +45,9 @@ COLOURS = [
   '#966757', # brown
 ]
 
-FONT = '~/.fonts/Dosis-Light.ttf', # !
-# '~/.fonts/Advent_Pro/AdventPro-Light.ttf', # !
-# '~/.fonts/Abel/Abel-Regular.ttf', # !
+FONT = '/home/pi/.fonts/Dosis-Light.ttf'
+# '/home/pi/.fonts/Advent_Pro/AdventPro-Light.ttf'
+# '/home/pi/.fonts/Abel/Abel-Regular.ttf'
 
 
 ##
