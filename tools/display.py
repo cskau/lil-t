@@ -291,12 +291,12 @@ def main():
   for midi_outport in jack_client.midi_outports:
     for midi_inport in jack_client.midi_inports:
       if 'effect_' in midi_inport.name:
-        client.connect(midi_outport, midi_inport)
+        jack_client.connect(midi_outport, midi_inport)
 
-  client.connect("effect_0:output" "system:playback_1")
-  client.connect("effect_0:output" "system:playback_2")
-  client.connect("effect_0:left_out" "system:playback_1")
-  client.connect("effect_0:right_out" "system:playback_2")
+  jack_client.connect("effect_0:output" "system:playback_1")
+  jack_client.connect("effect_0:output" "system:playback_2")
+  jack_client.connect("effect_0:left_out" "system:playback_1")
+  jack_client.connect("effect_0:right_out" "system:playback_2")
 
   mod.render_loop(
       frame_ui,
