@@ -16,6 +16,8 @@ from lilv import Instance
 
 import mido
 
+import jack
+
 #import display_emulator
 import ST7735 as TFT
 import Adafruit_GPIO.SPI as SPI
@@ -77,8 +79,34 @@ class Mod():
 
   def on_midi_event(self, midi_output_name, message):
     logger.info('midi(%s): %s', midi_output_name, message)
-    val = ((message.note - 53) / 23.0) * 100
-    self.set_param(0, 'volume', val)
+    if message.type == 'note_on':
+      message.channel
+      message.note
+      message.velocity
+    elif message.type == 'control_change':
+      message.channel
+      message.control
+      message.value
+      plugin = self.plugin_map['urn:50m30n3:plugins:SO-666']
+      for p in range(plugin.get_num_ports()):
+        port = plugin.get_port(p)
+        port_range = port.get_range()
+        if not port_range[1] is None:
+          default_val, min_val, max_val = [float(str(v)) for v in port_range]
+          val = default_val
+          symbol = port.get_symbol()
+          resp = self.get_param(0, symbol)
+          if resp:
+            resp_parts = resp.split(' ')
+            if len(resp_parts) == 3:
+              resp_header, resp_channel, resp_val = resp_parts
+              val = float(resp_val[:6])
+              self.set_param(0, symbol, (max_val - min_val) * (message.value / 127.0))
+    elif message.type == 'program_change':
+      message.channel
+      message.program
+    elif message.type == 'sysex':
+      message.data
 
 
   def render_loop(self, frame_ui, frame_callback, scale=1, delay=FRAME_DELAY_SECONDS):
@@ -252,6 +280,23 @@ def main():
 
   mod.send_command('remove {}'.format(0))
   mod.send_command('add {} {}'.format('urn:50m30n3:plugins:SO-666', 0))
+
+  jack_client = jack.Client(
+      'my_jack_client',
+      no_start_server=False,
+      servername=None)
+
+  jack_client.activate()
+
+  for midi_outport in jack_client.midi_outports:
+    for midi_inport in jack_client.midi_inports:
+      if 'effect_' in midi_inport.name:
+        client.connect(midi_outport, midi_inport)
+
+  client.connect("effect_0:output" "system:playback_1")
+  client.connect("effect_0:output" "system:playback_2")
+  client.connect("effect_0:left_out" "system:playback_1")
+  client.connect("effect_0:right_out" "system:playback_2")
 
   mod.render_loop(
       frame_ui,
