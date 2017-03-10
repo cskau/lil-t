@@ -308,8 +308,7 @@ def main(emulate_display=False):
   jack_client.activate()
 
   # Connect A2J Teensy MIDI output to all plugin MIDI inputs
-  teensy_midi_outs = jack_client.get_ports(
-      'a2j:Teensy MIDI .* (capture)', is_midi=True, is_output=True)
+  teensy_midi_outs = jack_client.get_ports('Teensy', is_midi=True, is_output=True)
   plugins_midi_ins = jack_client.get_ports('effect_', is_midi=True, is_input=True)
   
   if len(teensy_midi_outs) == 1 and plugins_midi_ins:
@@ -327,7 +326,7 @@ def main(emulate_display=False):
   system_audio_ins = jack_client.get_ports(
       'system:playback_', is_audio=True, is_input=True)
 
-  if len(plugins_audio_outs) == 2 and len(system_audio_ins) == 2:
+  if len(plugins_audio_outs) in [1, 2] and len(system_audio_ins) == 2:
     jack_client.connect(plugins_audio_outs[0], system_audio_ins[0])
     jack_client.connect(plugins_audio_outs[1], system_audio_ins[1])
   else:
