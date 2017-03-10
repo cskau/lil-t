@@ -112,22 +112,22 @@ class Mod():
     elif message.type == 'control_change':
       if message.control == 16: # General Purpose Controller 1
         val, min_val, max_val, symbol = self.ports[0]
-        val = (max_val - min_val) * (message.value / 127.0)
+        val = (max_val - min_val) * (message.value / 127.0) + min_val
         self.ports[0] = (val, min_val, max_val, symbol)
         self.set_param(message.channel, symbol, val)
       elif message.control == 17: # General Purpose Controller 2
         val, min_val, max_val, symbol = self.ports[1]
-        val = (max_val - min_val) * (message.value / 127.0)
+        val = (max_val - min_val) * (message.value / 127.0) + min_val
         self.ports[1] = (val, min_val, max_val, symbol)
         self.set_param(message.channel, symbol, val)
       elif message.control == 18: # General Purpose Controller 3
         val, min_val, max_val, symbol = self.ports[2]
-        val = (max_val - min_val) * (message.value / 127.0)
+        val = (max_val - min_val) * (message.value / 127.0) + min_val
         self.ports[2] = (val, min_val, max_val, symbol)
         self.set_param(message.channel, symbol, val)
       elif message.control == 19: # General Purpose Controller 4
         val, min_val, max_val, symbol = self.ports[3]
-        val = (max_val - min_val) * (message.value / 127.0)
+        val = (max_val - min_val) * (message.value / 127.0) + min_val
         self.ports[3] = (val, min_val, max_val, symbol)
         self.set_param(message.channel, symbol, val)
     elif message.type == 'program_change':
@@ -266,7 +266,7 @@ class FrameUI():
         )
     self.draw.text(
         (x+5, y+5),
-        str(val),
+        '{0:.4}'.format(val),
         COLOURS[2],
         font=self.font,
         )
