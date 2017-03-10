@@ -328,7 +328,7 @@ def main(emulate_display=False):
 
   if len(plugins_audio_outs) in [1, 2] and len(system_audio_ins) == 2:
     jack_client.connect(plugins_audio_outs[0], system_audio_ins[0])
-    jack_client.connect(plugins_audio_outs[1], system_audio_ins[1])
+    jack_client.connect(plugins_audio_outs[-1], system_audio_ins[1])
   else:
     logger.error(
         'Found wrong amount of audio ports: %s outs, %s ins',
