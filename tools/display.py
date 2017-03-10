@@ -2,6 +2,7 @@
 
 from __future__ import print_function
 
+import argparse
 import logging
 import socket
 from time import sleep
@@ -18,7 +19,6 @@ import mido
 
 import jack
 
-#import display_emulator
 import ST7735 as TFT
 import Adafruit_GPIO.SPI as SPI
 
@@ -51,6 +51,8 @@ FONT = '/home/pi/.fonts/Dosis-Light.ttf'
 # '/home/pi/.fonts/Advent_Pro/AdventPro-Light.ttf'
 # '/home/pi/.fonts/Abel/Abel-Regular.ttf'
 
+DEFAULT_PLUGIN = 'urn:50m30n3:plugins:SO-666'
+
 
 ##
 class Mod():
@@ -76,6 +78,29 @@ class Mod():
           callback=lambda message:self.on_midi_event(midi_output_name, message),
           )
 
+    self.ports = []
+
+    plugin = self.plugin_map[DEFAULT_PLUGIN]
+    self.load_plugin(plugin)
+
+
+  def load_plugin(self, plugin):
+    for p in range(plugin.get_num_ports()):
+      port = plugin.get_port(p)
+      port_range = port.get_range()
+      if not port_range[1] is None:
+        default_val, min_val, max_val = [float(str(v)) for v in port_range]
+        symbol = port.get_symbol()
+        self.ports.append((default_val, min_val, max_val, symbol))
+        # val = default_val
+        # resp = self.get_param(0, symbol)
+        # if resp:
+        #   resp_parts = resp.split(' ')
+        #   if len(resp_parts) == 3:
+        #     resp_header, resp_channel, resp_val = resp_parts
+        #     val = float(resp_val[:6])
+        #     self.ports.append((val, min_val, max_val, symbol))
+
 
   def on_midi_event(self, midi_output_name, message):
     logger.info('midi(%s): %s', midi_output_name, message)
@@ -84,24 +109,26 @@ class Mod():
       message.note
       message.velocity
     elif message.type == 'control_change':
-      message.channel
-      message.control
-      message.value
-      plugin = self.plugin_map['urn:50m30n3:plugins:SO-666']
-      for p in range(plugin.get_num_ports()):
-        port = plugin.get_port(p)
-        port_range = port.get_range()
-        if not port_range[1] is None:
-          default_val, min_val, max_val = [float(str(v)) for v in port_range]
-          val = default_val
-          symbol = port.get_symbol()
-          resp = self.get_param(0, symbol)
-          if resp:
-            resp_parts = resp.split(' ')
-            if len(resp_parts) == 3:
-              resp_header, resp_channel, resp_val = resp_parts
-              val = float(resp_val[:6])
-              self.set_param(0, symbol, (max_val - min_val) * (message.value / 127.0))
+      if message.control == 16: # General Purpose Controller 1
+        val, min_val, max_val, symbol = self.ports[0]
+        val = (max_val - min_val) * (message.value / 127.0)
+        self.ports[0][0] = val
+        self.set_param(message.channel, symbol, val)
+      elif message.control == 17: # General Purpose Controller 2
+        val, min_val, max_val, symbol = self.ports[1]
+        val = (max_val - min_val) * (message.value / 127.0)
+        self.ports[1][0] = val
+        self.set_param(message.channel, symbol, val)
+      elif message.control == 18: # General Purpose Controller 3
+        val, min_val, max_val, symbol = self.ports[2]
+        val = (max_val - min_val) * (message.value / 127.0)
+        self.ports[2][0] = val
+        self.set_param(message.channel, symbol, val)
+      elif message.control == 19: # General Purpose Controller 4
+        val, min_val, max_val, symbol = self.ports[3]
+        val = (max_val - min_val) * (message.value / 127.0)
+        self.ports[3][0] = val
+        self.set_param(message.channel, symbol, val)
     elif message.type == 'program_change':
       message.channel
       message.program
@@ -111,32 +138,15 @@ class Mod():
 
   def render_loop(self, frame_ui, frame_callback, scale=1, delay=FRAME_DELAY_SECONDS):
     while True:
-      plugin = self.plugin_map['urn:50m30n3:plugins:SO-666']
-
       frame_ui.clear()
 
       x, y = 20, 20
-      for p in range(plugin.get_num_ports()):
-        port = plugin.get_port(p)
-        port_range = port.get_range()
-        if not port_range[1] is None:
-          default_val, min_val, max_val = [float(str(v)) for v in port_range]
-
-          val = default_val
-
-          symbol = port.get_symbol()
-          resp = self.get_param(0, symbol)
-          if resp:
-            resp_parts = resp.split(' ')
-            if len(resp_parts) == 3:
-              resp_header, resp_channel, resp_val = resp_parts
-              val = float(resp_val[:6])
-
-          frame_ui.draw_knob(x, y, (val, min_val, max_val))
-          x += 40
-          if x >= 100:
-            x = 20
-            y += 40
+      for val, min_val, max_val, symbol in self.ports:
+        frame_ui.draw_knob(x, y, (val, min_val, max_val))
+        x += 40
+        if x >= 100:
+          x = 20
+          y += 40
 
       frame = frame_ui.get_frame()
       if scale != 1:
@@ -262,24 +272,32 @@ class FrameUI():
 
 
 ##
-def main():
-  # display = display_emulator.DisplayEmulator(WIDTH, HEIGHT, scale=2)
+def main(emulate_display=False):
+  logger.info('Connecting display')
 
-  display = TFT.ST7735(
-      DISPLAY_PIN_DC,
-      rst=DISPLAY_PIN_RST,
-      spi=SPI.SpiDev(
-          SPI_PORT,
-          SPI_DEVICE,
-          max_speed_hz=SPEED_HZ))
-  display.begin()
+  if emulate_display:
+    import display_emulator
+    display = display_emulator.DisplayEmulator(WIDTH, HEIGHT, scale=2)
+  else:
+    display = TFT.ST7735(
+        DISPLAY_PIN_DC,
+        rst=DISPLAY_PIN_RST,
+        spi=SPI.SpiDev(
+            SPI_PORT,
+            SPI_DEVICE,
+            max_speed_hz=SPEED_HZ))
+    display.begin()
 
   frame_ui = FrameUI(WIDTH, HEIGHT)
+
+  logger.info('Connecting to mod-host')
 
   mod = Mod()
 
   mod.send_command('remove {}'.format(0))
-  mod.send_command('add {} {}'.format('urn:50m30n3:plugins:SO-666', 0))
+  mod.send_command('add {} {}'.format(DEFAULT_PLUGIN, 0))
+
+  logger.info('Connecting to JACK')
 
   jack_client = jack.Client(
       'my_jack_client',
@@ -288,15 +306,36 @@ def main():
 
   jack_client.activate()
 
-  for midi_outport in jack_client.midi_outports:
-    for midi_inport in jack_client.midi_inports:
-      if 'effect_' in midi_inport.name:
-        jack_client.connect(midi_outport, midi_inport)
+  # Connect A2J Teensy MIDI output to all plugin MIDI inputs
+  teensy_midi_outs = jack_client.get_ports(
+      'a2j:Teensy MIDI .* (capture)', is_midi=True, is_output=True)
+  plugins_midi_ins = jack_client.get_ports('effect_', is_midi=True, is_input=True)
+  
+  if len(teensy_midi_outs) == 1 and plugins_midi_ins:
+    for midi_in in plugins_midi_ins:
+      jack_client.connect(teensy_midi_outs[0], midi_in)
+  else:
+    logger.error(
+        'Found wrong amount of MIDI ports: %s outs, %s ins',
+        len(teensy_midi_outs),
+        len(plugins_midi_ins))
 
-  jack_client.connect("effect_0:output" "system:playback_1")
-  jack_client.connect("effect_0:output" "system:playback_2")
-  jack_client.connect("effect_0:left_out" "system:playback_1")
-  jack_client.connect("effect_0:right_out" "system:playback_2")
+  # Connect plugin audio to system audio
+  plugins_audio_outs = jack_client.get_ports(
+      'effect_', is_audio=True, is_output=True)
+  system_audio_ins = jack_client.get_ports(
+      'system:playback_', is_audio=True, is_input=True)
+
+  if len(plugins_audio_outs) == 2 and len(system_audio_ins) == 2:
+    jack_client.connect(plugins_audio_outs[0], system_audio_ins[0])
+    jack_client.connect(plugins_audio_outs[1], system_audio_ins[1])
+  else:
+    logger.error(
+        'Found wrong amount of audio ports: %s outs, %s ins',
+        len(plugins_audio_outs),
+        len(system_audio_ins))
+
+  logger.info('Looping')
 
   mod.render_loop(
       frame_ui,
@@ -305,4 +344,10 @@ def main():
 
 ##
 if __name__ == '__main__':
-  main()
+  parser = argparse.ArgumentParser()
+  parser.add_argument('--emulate_display', action='store_true')
+  args = parser.parse_args()
+
+  emulate_display = args.emulate_display
+
+  main(emulate_display)

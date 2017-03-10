@@ -25,7 +25,7 @@ class DisplayEmulator:
         )
 
 
-  def set_frame(self, frame):
+  def display(self, frame):
     # A reference must be kept around otherwise the image won't show.
     self.canvas.photo_image = ImageTk.PhotoImage(frame)
     canvas_image = self.canvas.create_image(
