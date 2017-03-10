@@ -23,6 +23,7 @@ import ST7735 as TFT
 import Adafruit_GPIO.SPI as SPI
 
 
+logging.basicConfig()
 logger = logging.getLogger(__name__)
 
 
