@@ -116,26 +116,28 @@ class Mod():
       message.note
       message.velocity
     elif message.type == 'control_change':
+      message_channel = message.channel
+      effect_number = 0
       if message.control == 16: # General Purpose Controller 1
         val, min_val, max_val, symbol = self.ports[0]
         val = (max_val - min_val) * (message.value / 127.0) + min_val
         self.ports[0] = (val, min_val, max_val, symbol)
-        self.set_param(message.channel, symbol, val)
+        self.set_param(effect_number, symbol, val)
       elif message.control == 17: # General Purpose Controller 2
         val, min_val, max_val, symbol = self.ports[1]
         val = (max_val - min_val) * (message.value / 127.0) + min_val
         self.ports[1] = (val, min_val, max_val, symbol)
-        self.set_param(message.channel, symbol, val)
+        self.set_param(effect_number, symbol, val)
       elif message.control == 18: # General Purpose Controller 3
         val, min_val, max_val, symbol = self.ports[2]
         val = (max_val - min_val) * (message.value / 127.0) + min_val
         self.ports[2] = (val, min_val, max_val, symbol)
-        self.set_param(message.channel, symbol, val)
+        self.set_param(effect_number, symbol, val)
       elif message.control == 19: # General Purpose Controller 4
         val, min_val, max_val, symbol = self.ports[3]
         val = (max_val - min_val) * (message.value / 127.0) + min_val
         self.ports[3] = (val, min_val, max_val, symbol)
-        self.set_param(message.channel, symbol, val)
+        self.set_param(effect_number, symbol, val)
     elif message.type == 'program_change':
       message.channel
       message.program
