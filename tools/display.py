@@ -178,7 +178,7 @@ class Mod():
     self.to_modhost_socket.send(command)
 
     logger.debug('sent: %s', command)
-    
+
     resp = None
 
     try:
@@ -352,8 +352,13 @@ def main(emulate_display=False):
 if __name__ == '__main__':
   parser = argparse.ArgumentParser()
   parser.add_argument('--emulate_display', action='store_true')
+  parser.add_argument('--debug', action='store_true')
   args = parser.parse_args()
 
+  debug = args.debug
   emulate_display = args.emulate_display
+
+  if debug:
+    logger.setLevel(logging.DEBUG)
 
   main(emulate_display)
