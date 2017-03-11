@@ -52,8 +52,14 @@ FONT = '/home/pi/.fonts/Dosis-Light.ttf'
 # '/home/pi/.fonts/Advent_Pro/AdventPro-Light.ttf'
 # '/home/pi/.fonts/Abel/Abel-Regular.ttf'
 
-DEFAULT_PLUGIN = 'urn:50m30n3:plugins:SO-666'
-
+DEFAULT_PLUGIN = 'http://drobilla.net/plugins/mda/DX10'
+# DEFAULT_PLUGIN = 'http://drobilla.net/plugins/mda/JX10'
+# DEFAULT_PLUGIN = 'http://drobilla.net/plugins/mda/EPiano'
+# DEFAULT_PLUGIN = 'http://drobilla.net/plugins/mda/Piano'
+# DEFAULT_PLUGIN = 'http://magnus.smartelectronix.com/lv2/synth/qin'
+# DEFAULT_PLUGIN = 'urn:50m30n3:plugins:SO-404'
+# DEFAULT_PLUGIN = 'urn:50m30n3:plugins:SO-666'
+# DEFAULT_PLUGIN = 'urn:50m30n3:plugins:SO-kl5'
 
 ##
 class Mod():
