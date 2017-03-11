@@ -1,0 +1,14 @@
+[Unit]
+Description=display
+Requires=mod-host.service
+After=mod-host.service
+
+[Service]
+Type=oneshot
+ExecStart=/home/pi/src/lil-t/tools/display.py
+RemainAfterExit=true
+StandardOutput=journal
+Group=audio
+
+[Install]
+WantedBy=multi-user.target
