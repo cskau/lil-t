@@ -28,14 +28,16 @@ $ aplay -t raw -r 48000 -c 2 -f S16_LE /dev/zero
 
 ## System setup
 
-Configure overlay to pipe PWM to BCM pins 13 and 18, and remove hissing
-background noise by disabling dithering.
+If you're using a Raspberry Pi Zero, you can configure overlay to pipe PWM to BCM pins 13 and 18,
+and remove hissing background noise by disabling dithering.
 
 Add to `/boot/config.txt`:
 ```
 dtoverlay=pwm-2chan,pin=18,func=2,pin2=13,func2=4
 disable_audio_dither=1
 ```
+
+Note: You'll also need to filter the raw output if you're using the pins directly.
 
 Packages to `$ sudo apt-get install`:
 ```
