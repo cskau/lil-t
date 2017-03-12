@@ -149,13 +149,13 @@ class Mod():
     while True:
       frame_ui.clear()
 
-      x, y = 20, 20
+      x, y = 10, 20
       for val, min_val, max_val, symbol in self.ports:
-        frame_ui.draw_knob(x, y, (val, min_val, max_val))
-        x += 40
+        frame_ui.draw_knob(x, y, (val, min_val, max_val), symbol)
+        x += 60
         if x >= 100:
-          x = 20
-          y += 40
+          x = 10
+          y += 50
 
       frame = frame_ui.get_frame()
       if scale != 1:
@@ -233,6 +233,10 @@ class FrameUI():
         FONT,
         self.size,
         )
+    self.font12 = ImageFont.truetype(
+        FONT,
+        12,
+        )
 
 
   def get_frame(self):
@@ -263,7 +267,7 @@ class FrameUI():
           )
 
 
-  def draw_knob(self, x, y, vr):
+  def draw_knob(self, x, y, vr, symbol):
     val, val_min, val_max = vr
     deg = int(360 * (float(val - val_min) / float(val_max - val_min)))
     self.draw.pieslice(
@@ -274,9 +278,15 @@ class FrameUI():
         )
     self.draw.text(
         (x+5, y+5),
-        '{0:.4}'.format(val),
+        '{0:.3}'.format(val),
         COLOURS[2],
         font=self.font,
+        )
+    self.draw.text(
+        (x, y-5),
+        symbol,
+        COLOURS[3],
+        font=self.font12,
         )
 
 
