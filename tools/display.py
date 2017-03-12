@@ -149,10 +149,10 @@ class Mod():
     while True:
       frame_ui.clear()
 
-      x, y = 10, 20
+      x, y = 5, 20
       for val, min_val, max_val, symbol in self.ports:
         frame_ui.draw_knob(x, y, (val, min_val, max_val), symbol)
-        x += 50
+        x += 40
         if x >= 100:
           x = 10
           y += 40
@@ -283,7 +283,7 @@ class FrameUI():
         font=self.font,
         )
     self.draw.text(
-        (x, y-5),
+        (x, y-15),
         str(symbol),
         COLOURS[1],
         font=self.font12,
