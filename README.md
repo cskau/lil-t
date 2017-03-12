@@ -20,6 +20,11 @@ Test audio output by playing a sine wave:
 $ speaker-test -t sine -c 2
 ```
 
+Or test how much noise you have as a baseline by "playing" an all low signal:
+```
+$ aplay -t raw -r 48000 -c 2 -f S16_LE /dev/zero
+```
+
 
 ## System setup
 
