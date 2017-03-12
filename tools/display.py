@@ -149,7 +149,7 @@ class Mod():
     while True:
       frame_ui.clear()
 
-      x, y = 5, 20
+      x, y = 10, 20
       for val, min_val, max_val, symbol in self.ports:
         frame_ui.draw_knob(x, y, (val, min_val, max_val), symbol)
         x += 40
@@ -277,13 +277,13 @@ class FrameUI():
         COLOURS[4],
         )
     self.draw.text(
-        (x+5, y+5),
+        (x, y+5),
         '{:0.2f}'.format(val),
         COLOURS[2],
         font=self.font,
         )
     self.draw.text(
-        (x, y-15),
+        (x, y-10),
         str(symbol),
         COLOURS[1],
         font=self.font12,
