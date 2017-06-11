@@ -148,7 +148,7 @@ $ echo -n 'add http://magnus.smartelectronix.com/lv2/synth/qin 0' | nc -w1 local
 $ nc -w1 localhost 5556
 ```
 
-Print all JACK port and their connections:
+Print all JACK ports and their connections:
 ```
 $ sudo jack_lsp -c
 ```
