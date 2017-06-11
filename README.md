@@ -127,16 +127,16 @@ $ sudo systemctl start demo.service
 ```
 $ sudo systemctl status jackd.service
 $ sudo systemctl status mod-host.service
-$ sudo systemctl start a2jmidid.service
-$ sudo systemctl start demo.service
+$ sudo systemctl status a2jmidid.service
+$ sudo systemctl status demo.service
 ```
 
 Enable the service:
 ```
 $ sudo systemctl enable jackd.service
 $ sudo systemctl enable mod-host.service
-$ sudo systemctl start a2jmidid.service
-$ sudo systemctl start demo.service
+$ sudo systemctl enable a2jmidid.service
+$ sudo systemctl enable demo.service
 ```
 
 
