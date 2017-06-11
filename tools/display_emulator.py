@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 
 from Tkinter import *
+import Image
 import ImageTk
 
 
@@ -26,6 +27,12 @@ class DisplayEmulator:
 
 
   def display(self, frame):
+    if self.scale != 1:
+      frame = frame.resize(
+          (frame.width * self.scale, frame.height * self.scale),
+          Image.NEAREST,
+          )
+
     # A reference must be kept around otherwise the image won't show.
     self.canvas.photo_image = ImageTk.PhotoImage(frame)
     canvas_image = self.canvas.create_image(

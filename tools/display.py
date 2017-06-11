@@ -19,9 +19,6 @@ import mido
 
 import jack
 
-import ST7735 as TFT
-import Adafruit_GPIO.SPI as SPI
-
 
 logging.basicConfig()
 logger = logging.getLogger(__name__)
@@ -56,10 +53,11 @@ DEFAULT_PLUGIN = 'http://drobilla.net/plugins/mda/DX10'
 # DEFAULT_PLUGIN = 'http://drobilla.net/plugins/mda/JX10'
 # DEFAULT_PLUGIN = 'http://drobilla.net/plugins/mda/EPiano'
 # DEFAULT_PLUGIN = 'http://drobilla.net/plugins/mda/Piano'
-# DEFAULT_PLUGIN = 'http://magnus.smartelectronix.com/lv2/synth/qin'
-# DEFAULT_PLUGIN = 'urn:50m30n3:plugins:SO-404'
-# DEFAULT_PLUGIN = 'urn:50m30n3:plugins:SO-666'
-# DEFAULT_PLUGIN = 'urn:50m30n3:plugins:SO-kl5'
+# DEFAULT_PLUGIN = 'http://magnus.smartelectronix.com/lv2/synth/qin' # Not polyphonic.
+# DEFAULT_PLUGIN = 'urn:50m30n3:plugins:SO-404' # Channel has to be 15, other controls don't work?
+# DEFAULT_PLUGIN = 'urn:50m30n3:plugins:SO-666' # Channel has to be 15, other controls don't work?
+# DEFAULT_PLUGIN = 'urn:50m30n3:plugins:SO-kl5' # Channel has to be 15, other controls don't work?
+
 
 ##
 class Mod():
@@ -74,10 +72,15 @@ class Mod():
     world.load_all()
     self.plugins = world.get_all_plugins()
 
+    # Pre-load info about all known plugins.
     for plugin in self.plugins:
-      uri = plugin.get_uri()
-      self.plugin_map[str(uri)] = plugin
+      if self.is_midi_plugin(plugin):
+        uri = plugin.get_uri()
+        self.plugin_map[str(uri)] = plugin
 
+    self.active_plugin = None
+
+    # setup handler for all incoming MIDI messages.
     midi_output_names = mido.get_input_names()
     for midi_output_name in midi_output_names:
       input_port = mido.open_input(
@@ -85,20 +88,51 @@ class Mod():
           callback=lambda message:self.on_midi_event(midi_output_name, message),
           )
 
+    self.knob_mapping = {
+      16: 0, # General Purpose Controller 1
+      17: 1, # General Purpose Controller 2
+      18: 2, # General Purpose Controller 3
+      19: 3, # General Purpose Controller 4
+    }
+
+    self.state = 'menu'
+    # self.state = 'knobs'
+
+
+  def is_midi_plugin(self, plugin):
+    for p in range(plugin.get_num_ports()):
+      port = plugin.get_port(p)
+      if self.is_midi_port(port):
+        return True
+    return False
+
+
+  def is_midi_port(self, port):
+    classes = [str(c) for c in port.get_classes()]
+    if ('http://lv2plug.in/ns/lv2core#InputPort' in classes
+        and 'http://lv2plug.in/ns/ext/atom#AtomPort' in classes):
+      return True
+    return False
+
+
+  def remove_plugin(self, number):
+    self.send_command('remove {}'.format(number))
+
+
+  def add_plugin(self, number, plugin_uri):
+    self.send_command('add {} {}'.format(plugin_uri, 0))
+
     self.ports = []
 
-    plugin = self.plugin_map[DEFAULT_PLUGIN]
-    self.load_plugin(plugin)
-
-
-  def load_plugin(self, plugin):
+    plugin = self.plugin_map[plugin_uri]
     for p in range(plugin.get_num_ports()):
       port = plugin.get_port(p)
       port_range = port.get_range()
-      if not port_range[1] is None:
+      if not (port_range[0] is None or port_range[1] is None):
         default_val, min_val, max_val = [float(str(v)) for v in port_range]
         symbol = port.get_symbol()
         self.ports.append((default_val, min_val, max_val, symbol))
+
         # val = default_val
         # resp = self.get_param(0, symbol)
         # if resp:
@@ -117,52 +151,86 @@ class Mod():
       message.velocity
     elif message.type == 'control_change':
       message_channel = message.channel
+      control = message.control
       effect_number = 0
-      if message.control == 16: # General Purpose Controller 1
-        val, min_val, max_val, symbol = self.ports[0]
-        val = (max_val - min_val) * (message.value / 127.0) + min_val
-        self.ports[0] = (val, min_val, max_val, symbol)
-        self.set_param(effect_number, symbol, val)
-      elif message.control == 17: # General Purpose Controller 2
-        val, min_val, max_val, symbol = self.ports[1]
-        val = (max_val - min_val) * (message.value / 127.0) + min_val
-        self.ports[1] = (val, min_val, max_val, symbol)
-        self.set_param(effect_number, symbol, val)
-      elif message.control == 18: # General Purpose Controller 3
-        val, min_val, max_val, symbol = self.ports[2]
-        val = (max_val - min_val) * (message.value / 127.0) + min_val
-        self.ports[2] = (val, min_val, max_val, symbol)
-        self.set_param(effect_number, symbol, val)
-      elif message.control == 19: # General Purpose Controller 4
-        val, min_val, max_val, symbol = self.ports[3]
-        val = (max_val - min_val) * (message.value / 127.0) + min_val
-        self.ports[3] = (val, min_val, max_val, symbol)
-        self.set_param(effect_number, symbol, val)
+      if control in self.knob_mapping:
+        port = self.knob_mapping[control]
+        if port < len(self.ports):
+          val, min_val, max_val, symbol = self.ports[port]
+          val = (max_val - min_val) * (message.value / 127.0) + min_val
+          self.ports[port] = (val, min_val, max_val, symbol)
+          self.set_param(effect_number, symbol, val)
     elif message.type == 'program_change':
       message.channel
       message.program
     elif message.type == 'sysex':
-      message.data
+      data = message.data
+      if len(data) == 3:
+        manufacturer_id, button, onoff = data
+        if manufacturer_id == 0x7D:
+          logger.debug('Button pressed: %s', button)
+          if button == 0:
+            # Switch to next plugin
+            if self.active_plugin is None or self.active_plugin >= len(self.plugin_map):
+              self.active_plugin = 0
+            self.active_plugin += 1
+            print(self.active_plugin, len(self.plugin_map))
+            for i, plugin_uri in enumerate(self.plugin_map):
+              if self.active_plugin == i:
+                self.remove_plugin(0)
+                self.add_plugin(0, plugin_uri)
+          elif button == 1:
+            self.state = 'knobs'
+          elif button == 8:
+            # Switch knob 0 to next control.
+            self.knob_mapping[16] += 1
+          elif button == 9:
+            self.knob_mapping[17] += 1
+          elif button == 10:
+            self.knob_mapping[18] += 1
+          elif button == 11:
+            self.knob_mapping[19] += 1
+          elif button == 12:
+            # Reset knobs.
+            self.knob_mapping[16] = 0
+            self.knob_mapping[17] = 1
+            self.knob_mapping[18] = 2
+            self.knob_mapping[19] = 3
+          elif button == 13:
+            # Print all port params for plugin.
+            effect_number = 0
+            for val, min_val, max_val, symbol in self.ports:
+              val = self.get_param(effect_number, symbol)
+              print(val, min_val, max_val, symbol)
 
 
-  def render_loop(self, frame_ui, frame_callback, scale=1, delay=FRAME_DELAY_SECONDS):
+  def render_menu(self, frame_ui):
+    frame_ui.draw_menu(
+        items=['item0', 'item1'],
+        selected=0,
+        )
+
+
+  def render_knobs(self, frame_ui):
+    x, y = 10, 20
+    for val, min_val, max_val, symbol in self.ports:
+      frame_ui.draw_knob(x, y, (val, min_val, max_val), symbol)
+      x += 40
+      if x >= 100:
+        x = 10
+        y += 40
+
+
+  def render_loop(self, frame_ui, frame_callback, delay=FRAME_DELAY_SECONDS):
     while True:
       frame_ui.clear()
 
-      x, y = 10, 20
-      for val, min_val, max_val, symbol in self.ports:
-        frame_ui.draw_knob(x, y, (val, min_val, max_val), symbol)
-        x += 40
-        if x >= 100:
-          x = 10
-          y += 40
+      if self.state == 'menu':
+        self.render_menu(frame_ui)
+      elif self.state == 'knobs':
+        self.render_knobs(frame_ui)
 
       frame = frame_ui.get_frame()
-      if scale != 1:
-        frame = frame.resize(
-            (frame.width * scale, frame.height * scale),
-            Image.NEAREST,
-            )
 
       frame_callback(frame)
 
@@ -263,7 +331,7 @@ class FrameUI():
           (10, i * self.size),
           item,
           COLOURS[2],
-          font=font,
+          font=self.font,
           )
 
 
@@ -290,14 +358,52 @@ class FrameUI():
         )
 
 
+def connect_audio_midi(jack_client):
+  # Connect A2J Teensy MIDI output to all plugin MIDI inputs
+  teensy_midi_outs = jack_client.get_ports('Teensy', is_midi=True, is_output=True)
+  plugins_midi_ins = jack_client.get_ports('effect_', is_midi=True, is_input=True)
+
+  if len(teensy_midi_outs) == 1 and plugins_midi_ins:
+    for midi_in in plugins_midi_ins:
+      jack_client.connect(teensy_midi_outs[0], midi_in)
+  else:
+    logger.error(
+        'Found wrong amount of MIDI ports: %s outs, %s ins',
+        len(teensy_midi_outs),
+        len(plugins_midi_ins))
+
+  # Connect plugin audio to system audio
+  plugins_audio_outs = jack_client.get_ports(
+      'effect_',
+      is_audio=True,
+      is_output=True,
+      )
+  system_audio_ins = jack_client.get_ports(
+      'system:playback_',
+      is_audio=True,
+      is_input=True,
+      )
+
+  if len(plugins_audio_outs) in [1, 2] and len(system_audio_ins) >= 2:
+    jack_client.connect(plugins_audio_outs[0], system_audio_ins[0])
+    jack_client.connect(plugins_audio_outs[-1], system_audio_ins[1])
+  else:
+    logger.error(
+        'Found wrong amount of audio ports: %s outs, %s ins',
+        len(plugins_audio_outs),
+        len(system_audio_ins))
+
+
 ##
-def main(emulate_display=False):
+def main(emulate_display=False, plugin=DEFAULT_PLUGIN):
   logger.info('Connecting display')
 
   if emulate_display:
     import display_emulator
     display = display_emulator.DisplayEmulator(WIDTH, HEIGHT, scale=2)
   else:
+    import ST7735 as TFT
+    import Adafruit_GPIO.SPI as SPI
     display = TFT.ST7735(
         DISPLAY_PIN_DC,
         rst=DISPLAY_PIN_RST,
@@ -312,9 +418,8 @@ def main(emulate_display=False):
   logger.info('Connecting to mod-host')
 
   mod = Mod()
-
-  mod.send_command('remove {}'.format(0))
-  mod.send_command('add {} {}'.format(DEFAULT_PLUGIN, 0))
+  mod.remove_plugin(0)
+  mod.add_plugin(0, plugin)
 
   logger.info('Connecting to JACK')
 
@@ -325,33 +430,9 @@ def main(emulate_display=False):
 
   jack_client.activate()
 
-  # Connect A2J Teensy MIDI output to all plugin MIDI inputs
-  teensy_midi_outs = jack_client.get_ports('Teensy', is_midi=True, is_output=True)
-  plugins_midi_ins = jack_client.get_ports('effect_', is_midi=True, is_input=True)
-  
-  if len(teensy_midi_outs) == 1 and plugins_midi_ins:
-    for midi_in in plugins_midi_ins:
-      jack_client.connect(teensy_midi_outs[0], midi_in)
-  else:
-    logger.error(
-        'Found wrong amount of MIDI ports: %s outs, %s ins',
-        len(teensy_midi_outs),
-        len(plugins_midi_ins))
+  # logger.info('Connecting to ports')
 
-  # Connect plugin audio to system audio
-  plugins_audio_outs = jack_client.get_ports(
-      'effect_', is_audio=True, is_output=True)
-  system_audio_ins = jack_client.get_ports(
-      'system:playback_', is_audio=True, is_input=True)
-
-  if len(plugins_audio_outs) in [1, 2] and len(system_audio_ins) == 2:
-    jack_client.connect(plugins_audio_outs[0], system_audio_ins[0])
-    jack_client.connect(plugins_audio_outs[-1], system_audio_ins[1])
-  else:
-    logger.error(
-        'Found wrong amount of audio ports: %s outs, %s ins',
-        len(plugins_audio_outs),
-        len(system_audio_ins))
+  # connect_audio_midi(jack_client)
 
   logger.info('Looping')
 
@@ -365,12 +446,14 @@ if __name__ == '__main__':
   parser = argparse.ArgumentParser()
   parser.add_argument('--emulate_display', action='store_true')
   parser.add_argument('--debug', action='store_true')
+  parser.add_argument('--plugin')
   args = parser.parse_args()
 
   debug = args.debug
   emulate_display = args.emulate_display
+  plugin = args.plugin
 
   if debug:
     logger.setLevel(logging.DEBUG)
 
-  main(emulate_display)
+  main(emulate_display, plugin)
