@@ -1,5 +1,6 @@
 [Unit]
 Description=Start JACK
+After=sound.target
 
 [Service]
 ExecStart=/usr/bin/dbus-launch /usr/bin/jackd -R -dalsa -Phw:ALSA,0 -r48000 -p512 -n4 -S
@@ -7,6 +8,9 @@ ExecStop=/usr/bin/killall jackd
 Restart=always
 RestartSec=1
 Group=audio
+LimitRTPRIO=infinity
+LimitMEMLOCK=infinity
+User=pi
 
 [Install]
 WantedBy=multi-user.target
