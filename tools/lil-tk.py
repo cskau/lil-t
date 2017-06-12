@@ -14,6 +14,8 @@ from util import get_jack_client
 from util import connect_audio_midi
 
 
+LOG_FILE_PATH = '/home/pi/lil-tk.log'
+
 WIDTH = 160
 HEIGHT = 128
 
@@ -24,7 +26,7 @@ SYSEX_LEFT = 5
 
 
 logging.basicConfig(
-    filename='/home/pi/lil-tk.log',
+    filename=LOG_FILE_PATH,
     filemode='w',
     )
 logger = logging.getLogger(__name__)
