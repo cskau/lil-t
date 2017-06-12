@@ -23,7 +23,10 @@ SYSEX_RIGHT = 1
 SYSEX_LEFT = 5
 
 
-logging.basicConfig()
+logging.basicConfig(
+    filename='/home/pi/lil-tk.log',
+    filemode='w',
+    )
 logger = logging.getLogger(__name__)
 
 
