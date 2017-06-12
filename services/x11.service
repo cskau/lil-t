@@ -1,0 +1,10 @@
+[Unit]
+After=systemd-user-sessions.service
+
+[Service]
+ExecStart=/usr/bin/startx
+Environment="FRAMEBUFFER=/dev/fb1"
+User=pi
+
+[Install]
+WantedBy=multi-user.target

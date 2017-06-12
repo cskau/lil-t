@@ -10,6 +10,7 @@ ExecStop=/usr/bin/killall mod-host
 Restart=always
 RestartSec=4
 Group=audio
+User=pi
 
 [Install]
 WantedBy=multi-user.target

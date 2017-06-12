@@ -8,9 +8,9 @@ ExecStop=/usr/bin/killall jackd
 Restart=always
 RestartSec=1
 Group=audio
+User=pi
 LimitRTPRIO=infinity
 LimitMEMLOCK=infinity
-User=pi
 
 [Install]
 WantedBy=multi-user.target

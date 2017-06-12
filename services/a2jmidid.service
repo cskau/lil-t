@@ -9,6 +9,7 @@ ExecStop=/usr/bin/killall a2jmidid
 Restart=always
 RestartSec=4
 Group=audio
+User=pi
 Environment="HOME=/home/pi/"
 
 [Install]
