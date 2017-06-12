@@ -58,13 +58,13 @@ class LilTKApp:
     add_midi_event_listener(self.on_midi_event)
 
     #
-    self.jack_client = get_jack_client('liltk_jack_client')
-    connect_audio_midi(self.jack_client)
-
-    #
     self.mod_host = ModHostConnection()
 
     self.mod_host.add_plugin('http://drobilla.net/plugins/mda/EPiano', 0)
+
+    #
+    self.jack_client = get_jack_client('liltk_jack_client')
+    connect_audio_midi(self.jack_client)
 
 
   def on_midi_event(self, midi_input_name, message):
