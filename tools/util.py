@@ -73,19 +73,28 @@ class ModHostConnection():
     # except Exception:
     #   return None
 
-    return resp
+    return resp.strip('\x00')
 
 
-  def add_plugin(self, plugin_uri, number=0):
-    self.send_command('add {} {}'.format(plugin_uri, number))
+  def add_plugin(self, plugin_uri, instance_number=0):
+    self.send_command('add {} {}'.format(plugin_uri, instance_number))
 
 
-  def remove_plugin(self, number):
-    self.send_command('remove {}'.format(number))
+  def remove_plugin(self, instance_number):
+    self.send_command('remove {}'.format(instance_number))
 
 
   def get_presets(self, URI):
-    self.send_command('preset_show {}'.format(URI))
+    return self.send_command('preset_show {}'.format(URI))
+
+
+  def get_param(self, instance_number, symbol):
+    print('param_get {} {}'.format(instance_number, symbol))
+    return self.send_command('param_get {} {}'.format(instance_number, symbol))
+
+
+  def set_param(self, instance_number, symbol, value):
+    return self.send_command('param_set {} {} {}'.format(instance_number, symbol, value))
 
 
 # LV2 utils
@@ -93,7 +102,7 @@ class ModHostConnection():
 def get_plugins():
   world = World()
   world.load_all()
-  
+    
   plugins = world.get_all_plugins()
   
   plugin_map = {}
@@ -116,11 +125,32 @@ def is_midi_plugin(plugin):
 
 
 def is_midi_port(port):
-  classes = [str(c) for c in port.get_classes()]
-  if ('http://lv2plug.in/ns/lv2core#InputPort' in classes
-      and 'http://lv2plug.in/ns/ext/atom#AtomPort' in classes):
-    return True
+  for c in port.get_classes():
+    if str(c) == 'http://lv2plug.in/ns/lv2core#InputPort':
+      return True
+    elif str(c) == 'http://lv2plug.in/ns/ext/atom#AtomPort':
+      return True
   return False
+
+
+def get_ports(plugin):
+  ports = []
+  for p in range(plugin.get_num_ports()):
+    port = plugin.get_port(p)
+    ports.append(port)
+  return ports
+
+
+def get_symbols(plugin):
+  symbols = []
+  for p in range(plugin.get_num_ports()):
+    port = plugin.get_port(p)
+    symbol = port.get_symbol()
+    port_range = port.get_range()
+    if not (port_range[0] is None or port_range[1] is None):
+      default_val, min_val, max_val = [float(str(v)) for v in port_range]
+      symbols.append((symbol, default_val, min_val, max_val))
+  return symbols
 
 
 # Mido MIDI utils
@@ -155,59 +185,59 @@ def get_jack_client(
   return jack_client
 
 
-def connect_audio_midi(jack_client):
-  # Connect A2J Teensy MIDI output to all plugin MIDI inputs
-  teensy_midi_outs = jack_client.get_ports(
+def get_connections(jack_client, port):
+  return jack_client.get_all_connections(port)
+
+
+def get_all_ports(jack_client):
+  return jack_client.get_ports()
+
+
+def connect_effect(jack_client, effect):
+  ports = jack_client.get_ports(effect + ':')
+
+  midi_in_ports = jack_client.get_ports(
+      effect + ':',
+      is_midi=True,
+      is_input=True,
+      )
+
+  audio_out_ports = jack_client.get_ports(
+      effect + ':',
+      is_audio=True,
+      is_output=True,
+      )
+
+  midi_out_ports = jack_client.get_ports(
       'Teensy',
       is_midi=True,
       is_output=True,
       )
-  plugins_midi_ins = jack_client.get_ports(
-      'effect_',
-      is_midi=True,
+
+  audio_in_ports = jack_client.get_ports(
+      'system:',
+      is_audio=True,
       is_input=True,
       )
 
-  if len(teensy_midi_outs) == 1 and plugins_midi_ins:
-    for midi_in in plugins_midi_ins:
-      try:
-        jack_client.connect(teensy_midi_outs[0], midi_in)
-      except jack.JackError as e:
-        logger.warning(e)
-  else:
-    logger.error(
-        'Found wrong amount of MIDI ports: %s outs, %s ins',
-        len(teensy_midi_outs),
-        len(plugins_midi_ins),
+  # print(midi_in_ports)
+  # print(audio_out_ports)
+  # print(midi_out_ports)
+  # print(audio_in_ports)
+
+  if (len(midi_in_ports) == 1
+      and len(audio_out_ports) == 2
+      and len(midi_out_ports) == 1
+      and len(audio_in_ports) == 2):
+    jack_client.connect(
+        audio_out_ports[0],
+        audio_in_ports[0],
         )
-
-  # Connect plugin audio to system audio
-  plugins_audio_outs = jack_client.get_ports(
-      'effect_',
-      is_audio=True,
-      is_output=True,
-      )
-  system_audio_ins = jack_client.get_ports(
-      'system:playback_',
-      is_audio=True,
-      is_input=True,
-      )
-
-  if len(plugins_audio_outs) >= 1 and len(system_audio_ins) >= 2:
-    for plugins_audio_out in plugins_audio_outs:
-      system_audio_in = (
-          system_audio_ins[0]
-          if 'left' in plugins_audio_out.name else
-          system_audio_ins[1]
-          )
-
-      try:
-        jack_client.connect(plugins_audio_out, system_audio_in)
-      except jack.JackError as e:
-        logger.warning(e)
-  else:
-    logger.error(
-        'Found wrong amount of audio ports: %s outs, %s ins',
-        len(plugins_audio_outs),
-        len(system_audio_ins),
+    jack_client.connect(
+        audio_out_ports[1],
+        audio_in_ports[1],
+        )
+    jack_client.connect(
+        midi_out_ports[0],
+        midi_in_ports[0],
         )

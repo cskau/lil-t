@@ -58,6 +58,14 @@ libportmidi-dev
 libffi-dev
 libasound2-dev
 libjack-jackd2-dev
+lv2-dev
+```
+
+You will also need at least one of the below to compile jalv:
+```
+libgtk2.0-dev
+libgtk-3-dev
+libqt4-dev
 ```
 
 Python modules to `$ sudo pip install`:
@@ -76,7 +84,7 @@ lilv, LV2, etc:
 ```
 $ cd ~/src/
 $ git clone http://git.drobilla.net/drobillad.git
-$ cd drobilla
+$ cd drobillad
 $ git submodule init  &&  git submodule update  &&  git pull
 $ ./waf configure --bindings  &&  ./waf  &&  sudo ./waf install
 ```
