@@ -227,37 +227,42 @@ class ControlsFrame(Frame):
     self.url = url
     self.instance_number = instance_number
 
+    self.offset = 0
+
     symbols = self.model.get_symbols(self.url)
 
     if len(symbols) < 1:
       return
 
     self.value_var1, self.label_var1 = self.add_labels(
-        symbols[0][0], symbols[0][1], 0, 'light yellow')
+        symbols[0 + self.offset][0], symbols[0 + self.offset][1], 0, 'light yellow')
 
     if len(symbols) < 2:
       return
 
     self.value_var2, self.label_var2 = self.add_labels(
-        symbols[1][0], symbols[1][1], 1, 'light green')
+        symbols[1 + self.offset][0], symbols[1 + self.offset][1], 1, 'light green')
 
     if len(symbols) < 3:
       return
 
     self.value_var3, self.label_var3 = self.add_labels(
-        symbols[2][0], symbols[2][1], 2, 'light pink')
+        symbols[2 + self.offset][0], symbols[2 + self.offset][1], 2, 'light pink')
 
     if len(symbols) < 4:
       return
 
     self.value_var4, self.label_var4 = self.add_labels(
-        symbols[3][0], symbols[3][1], 3, 'light blue')
+        symbols[3 + self.offset][0], symbols[3 + self.offset][1], 3, 'light blue')
 
 
   def on_event(self, message):
     if message.type == 'control_change':
       symbols = self.controller.get_symbols(self.url)
-      symbol, default_val, min_val, max_val = symbols[message.control-16]
+
+      symbol_index = message.control - 16 + self.offset
+
+      symbol, default_val, min_val, max_val = symbols[symbol_index]
 
       value = (max_val - min_val) * (message.value / 127.0) + min_val
 
@@ -431,7 +436,10 @@ class LilTKApp:
           elif button == SYSEX_TWO:
             self.show_load_module_frame(self.instance_number)
           elif button == SYSEX_THREE:
-            self.show_controls_frame()
+            selection = 1
+            instances = self.model.get_instances()
+            instance = instances[selection]
+            self.show_controls_frame(instance)
           elif button == SYSEX_FOUR:
             self.show_ports_frame(self.instance_number)
           else:
