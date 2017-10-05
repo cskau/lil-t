@@ -147,26 +147,46 @@ class ModulesFrame(Frame):
     self.listbox.selection_set(0)
 
 
+  def on_key(self, event):
+    if event.keycode in [36, 114]: # Return, Right
+      self.handle_event('SELECT')
+    elif event.keycode == 111: # Up
+      self.handle_event('UP')
+    elif event.keycode == 116: # Down
+      self.handle_event('DOWN')
+    else:
+      print('{} ({})'.format(event.keysym, event.keycode))
+
+
   def on_event(self, message):
     if message.type == 'sysex':
       if len(message.data) == 3:
         manufacturer_id, button, onoff = message.data
         if manufacturer_id == MANUFACTURER_ID:
           if button == SYSEX_RIGHT:
-            selection = (self.listbox.curselection() or [0])[0]
+            self.handle_event('SELECT')
+          elif button == SYSEX_UP:
+            self.handle_event('UP')
+          elif button == SYSEX_DOWN:
+            self.handle_event('DOWN')
 
-            if self.listbox.get(selection) == 'Add module':
-              self.controller.show_load_module_frame(selection)
-            else:
-              instances = self.model.get_instances()
-              self.controller.show_controls_frame(instances[selection])
-          else:
-            if button == SYSEX_UP:
-              move_selection(self.listbox, -1)
-            elif button == SYSEX_DOWN:
-              move_selection(self.listbox, +1)
-            selection = (self.listbox.curselection() or [0])[0]
-            self.controller.set_instance_number(selection)
+
+  def handle_event(self, event):
+    if event == 'SELECT':
+      selection = (self.listbox.curselection() or [0])[0]
+
+      if self.listbox.get(selection) == 'Add module':
+        self.controller.show_load_module_frame(selection)
+      else:
+        instances = self.model.get_instances()
+        self.controller.show_controls_frame(instances[selection])
+    else:
+      if event == 'UP':
+        move_selection(self.listbox, -1)
+      elif event == 'DOWN':
+        move_selection(self.listbox, +1)
+      selection = (self.listbox.curselection() or [0])[0]
+      self.controller.set_instance_number(selection)
 
 
 #
@@ -183,23 +203,41 @@ class LoadModulesFrame(Frame):
     self.instance_number = instance_number
 
 
-  def on_event(self, message):
-    selection = (self.listbox.curselection() or [0])[0]
+  def on_key(self, event):
+    if event.keycode in [36, 114]: # Return, Right
+      self.handle_event('SELECT')
+    elif event.keycode == 111: # Up
+      self.handle_event('UP')
+    elif event.keycode == 116: # Down
+      self.handle_event('DOWN')
+    else:
+      print('{} ({})'.format(event.keysym, event.keycode))
 
+
+  def on_event(self, message):
     if message.type == 'sysex':
       if len(message.data) == 3:
         manufacturer_id, button, onoff = message.data
         if manufacturer_id == MANUFACTURER_ID:
           if button == SYSEX_UP:
-            move_selection(self.listbox, -1)
+            self.handle_event('UP')
           elif button == SYSEX_DOWN:
-            move_selection(self.listbox, +1)
+            self.handle_event('DOWN')
           elif button == SYSEX_RIGHT:
-            self.controller.load_into_instance(
-                self.listbox.get(selection),
-                self.instance_number,
-                )
+            self.handle_event('SELECT')
 
+
+  def handle_event(self, event):
+    selection = (self.listbox.curselection() or [0])[0]
+    if event == 'UP':
+      move_selection(self.listbox, -1)
+    elif event == 'DOWN':
+      move_selection(self.listbox, +1)
+    elif event == 'SELECT':
+      self.controller.load_into_instance(
+          self.listbox.get(selection),
+          self.instance_number,
+          )
 
 #
 class ControlsFrame(Frame):
@@ -256,6 +294,10 @@ class ControlsFrame(Frame):
         symbols[3 + self.offset][0], symbols[3 + self.offset][1], 3, 'light blue')
 
 
+  def on_key(self, event):
+    print(event)
+
+
   def on_event(self, message):
     if message.type == 'control_change':
       symbols = self.controller.get_symbols(self.url)
@@ -301,6 +343,10 @@ class PortsFrame(Frame):
     # ports = [p.name for p in self.model.jack_client.get_ports()]
     self.listbox = add_listbox(self, ports)
     self.listbox.selection_set(0)
+
+
+  def on_key(self, event):
+    print(event)
 
 
   def on_event(self, message):
@@ -354,6 +400,9 @@ class LilTKApp:
     self.active_frame = None
 
     self.show_modules_frame()
+
+    #
+    self.root.bind("<Key>", self.on_key)
 
     #
     add_midi_event_listener(self.on_midi_event)
@@ -422,6 +471,22 @@ class LilTKApp:
             instance_number=instance_number,
             )
         )
+
+
+  def on_key(self, event):
+    if event.char == '1':
+      self.show_modules_frame()
+    elif event.char == '2':
+      self.show_load_module_frame(self.instance_number)
+    elif event.char == '3':
+      selection = 0 # TODO: pick selected plugin, whatever that means
+      instances = self.model.get_instances()
+      instance = instances[selection]
+      self.show_controls_frame(instance)
+    elif event.char == '4':
+      self.show_ports_frame(self.instance_number)
+    else:
+      self.active_frame.on_key(event)
 
 
   def on_midi_event(self, midi_input_name, message):
