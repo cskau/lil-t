@@ -35,9 +35,12 @@ class FramebufferUI:
     if not driver_succeeded:
       raise Exception('All drivers failed!')
 
+    os.putenv('SDL_NOMOUSE', 1)
+
 
   def __init__(self):
     self.init_framebuffer_display()
+    pygame.mouse.set_visible(0)
     pygame.font.init()
     self.screen = pygame.display.set_mode(
         (pygame.display.Info().current_w, pygame.display.Info().current_h),
