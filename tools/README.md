@@ -154,3 +154,35 @@ jack.OwnPort('my_test_client:my_in')
 jack.OwnPort('my_test_client:my_out')
 0.0
 ```
+
+
+## fb.py
+
+Run an alternative framebuffer based UI.
+```
+./fb.py
+```
+
+This is based on PyGame so you'll need that installed:
+```
+sudo apt-get install python-pygame
+```
+
+If you're testing on a machine that doesn't have a framebuffer, eg. your desktop,
+you can set up a virtual framebuffer and run it there:
+```
+# Install X11 Virtual Framebuffer and VNC to connect to the display:
+sudo apt-get install xvfb x11vnc
+
+# Create the framebuffer:
+Xvfb :1 -screen 0 128x160x8 -fbdir ~/tmp/
+
+# Run the UI on the newly created display:
+export DISPLAY=:1 ./fb.py
+
+# You can either dump a single frame:
+xwud -in ~/tmp/Xvfb_screen0
+# Or setup and connect to the display via VNC
+x11vnc -display :1 -bg -nopw -listen localhost -xkb
+vncviewer localhost
+```
