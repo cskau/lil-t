@@ -23,7 +23,7 @@ logger = logging.getLogger(__name__)
 # mod-host utils
 
 class ModHostConnection():
-  
+
   def __init__(self):
     self.to_modhost_socket, self.from_modhost_socket = self.get_mod_host_sockets()
 
@@ -102,9 +102,9 @@ class ModHostConnection():
 def get_plugins():
   world = World()
   world.load_all()
-    
+
   plugins = world.get_all_plugins()
-  
+
   plugin_map = {}
 
   # Pre-load info about all known plugins.
@@ -181,7 +181,7 @@ def get_jack_client(
 
   if activate:
     jack_client.activate()
-  
+
   return jack_client
 
 
@@ -193,7 +193,7 @@ def get_all_ports(jack_client):
   return jack_client.get_ports()
 
 
-def connect_effect(jack_client, effect):
+def connect_effect(jack_client, effect, midi_in='Teensy'):
   ports = jack_client.get_ports(effect + ':')
 
   midi_in_ports = jack_client.get_ports(
@@ -209,7 +209,7 @@ def connect_effect(jack_client, effect):
       )
 
   midi_out_ports = jack_client.get_ports(
-      'Teensy',
+      midi_in,
       is_midi=True,
       is_output=True,
       )
