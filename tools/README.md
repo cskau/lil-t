@@ -185,4 +185,7 @@ xwud -in ~/tmp/Xvfb_screen0
 # Or setup and connect to the display via VNC
 x11vnc -display :1 -bg -nopw -listen localhost -xkb
 vncviewer localhost
+
+# If run on a system with multiple framebuffers, you can set which to use:
+export SDL_FBDEV=/dev/fb1 ./fb.py
 ```
