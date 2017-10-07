@@ -35,8 +35,6 @@ class FramebufferUI:
     if not driver_succeeded:
       raise Exception('All drivers failed!')
 
-    os.putenv('SDL_NOMOUSE', 1)
-
 
   def __init__(self):
     self.init_framebuffer_display()
