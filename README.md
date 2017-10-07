@@ -37,7 +37,15 @@ dtoverlay=pwm-2chan,pin=18,func=2,pin2=13,func2=4
 disable_audio_dither=1
 ```
 
-Note: You'll also need to filter the raw output if you're using the pins directly.
+Note: You'll also need to filter the raw output if you're using the pins directly. I use a simple 2 resistor, 2 capacitor filter.
+Alternatively you can look into I2S audio.
+
+[Supposedly](https://wiki.linuxaudio.org/wiki/raspberrypi)
+disabling CPU scaling can also help remove audio glitches:
+```
+echo -n performance | sudo tee /sys/devices/system/cpu/cpu0/cpufreq/scaling_governor
+```
+
 
 Packages to `$ sudo apt-get install`:
 ```
