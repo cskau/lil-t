@@ -49,31 +49,41 @@ class FramebufferUI:
 
     self.clock = pygame.time.Clock()
 
-    self.screen.fill((0, 0, 0))
-    pygame.display.flip()
+    self.clear()
 
 
   def __del__(self):
     None
 
 
-  def listen(self, handler):
-    while True:
-      self.clock.tick(30) # target framerate to wait for
+  def clear(self, color=(0, 0, 0)):
+    self.screen.fill(color)
+    pygame.display.flip()
+
+
+  def run_loop(self, event_callback, draw_callback, target_framerate=30):
+    running = True
+    while running:
+      # wait some amount of time for target framerate
+      self.clock.tick(target_framerate)
+
       for event in pygame.event.get():
-        handler(event)
+        event_callback(event)
         if event.type == pygame.QUIT:
+          running = False
           pygame.quit()
           break
+      if not running:
+        break
 
+      draw_callback()
 
-#
-def main():
-  fbui = FramebufferUI()
-  fbui.fill((0, 0, 255))
-  time.sleep(10)
+      pygame.display.flip()
 
 
 #
 if __name__ == '__main__':
-  main()
+  # For testing
+  fbui = FramebufferUI()
+  fbui.clear((0, 0, 255))
+  time.sleep(10)
