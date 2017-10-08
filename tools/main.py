@@ -53,7 +53,6 @@ class Master:
     self.screen = screen
 
     self.plugins = Plugins(self, self.model, self.screen)
-    self.tapes = Tapes(self.screen)
 
     self.active_mode = self.plugins
 
