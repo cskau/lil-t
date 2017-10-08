@@ -13,6 +13,7 @@ from model import Model
 import util
 from util import add_midi_event_listener
 from util import connect_effect
+from tape import Tape
 
 
 LOG_FILE_PATH = '/home/pi/lil-tk.log'
@@ -49,12 +50,11 @@ class Master:
   def __init__(self, model, screen):
     self.model = model
     self.screen = screen
-    self.active_mode = Plugins(self, model, screen)
 
+    self.plugins = Plugins(self, self.model, self.screen)
+    self.tapes = Tapes(self.screen)
 
-  def on_midi_event(self, midi_input_name, message):
-    logger.debug('midi(%s): %s', midi_input_name, message)
-    self.active_mode.on_midi_event(midi_input_name, message)
+    self.active_mode = self.plugins
 
 
   def on_draw(self):
@@ -68,18 +68,23 @@ class Master:
       if event.key == 27: # Esc
         pygame.quit()
       elif event.key == 282: # F1
-        self.active_mode = Plugins(self, self.model, self.screen)
+        self.active_mode = self.plugins
       elif event.key == 283: # F2
         self.active_mode = Controls(
             self.model, self.screen, self.active_plugin_url, self.active_channel)
       elif event.key == 284: # F3
-        print('F3')
+        self.active_mode = self.tapes
       elif event.key == 285: # F4
         print('F4')
       else:
         self.active_mode.on_pygame_event(event)
     else:
       self.active_mode.on_pygame_event(event)
+
+
+  def on_midi_event(self, midi_input_name, message):
+    logger.debug('midi(%s): %s', midi_input_name, message)
+    self.active_mode.on_midi_event(midi_input_name, message)
 
 
   def set_active_channel(self, channel):
@@ -93,6 +98,63 @@ class Master:
         self.active_plugin_url,
         self.active_channel)
     connect_effect(self.model.jack_client, 'effect_0:')
+
+
+class Tapes:
+
+  screen = None
+  tape = None
+
+  def __init__(self, screen):
+    self.screen = screen
+    self.tape = Tape()
+
+
+  def on_draw(self):
+    self.screen.fill((0, 0, 0))
+    pygame.draw.line(self.screen, (0, 0, 255), (40, 80), (120, 80))
+    pygame.draw.circle(
+        self.screen,
+        (255, 0, 0) if self.tape.play else (0, 0, 255),
+        (40, 50), 30, 4)
+    pygame.draw.circle(
+        self.screen,
+        (0, 255, 0) if self.tape.record else (0, 0, 255),
+        (120, 50), 30, 2)
+
+
+  def on_pygame_event(self, event):
+    if event.type == pygame.KEYDOWN:
+      if event.key == 113: # q
+        self.tape.set_recording(True)
+      elif event.key == 119: # w
+        self.tape.set_playing(True)
+      elif event.key == 101: # e
+        None
+      elif event.key == 114: # r
+        None
+      elif event.key == 273: # up
+        self.tape.clear_tape()
+      elif event.key == 274: # down
+        None
+      elif event.key == 275: # right
+        None
+      elif event.key == 276: # left
+        self.tape.seek(0)
+      elif event.key == 13: # enter
+        self.tape.halt()
+      elif event.key == 49: # 1
+        self.tape.set_track(1)
+      elif event.key == 50: # 2
+        self.tape.set_track(2)
+      elif event.key == 51: # 3
+        self.tape.set_track(3)
+      elif event.key == 52: # 4
+        self.tape.set_track(4)
+
+
+  def on_midi_event(self, midi_input_name, message):
+    return
 
 
 class Plugins:
@@ -168,9 +230,6 @@ class Controls:
 
   def on_draw(self):
     self.screen.fill((0, 0, 0))
-
-    # pygame.draw.rect(self.screen, (0, 255, 0), (8, 28, 54, 34), 2)
-    # pygame.draw.line(self.screen, (0, 255, 0), (10, 100), (510, 100))
 
     x = 0
     for symbol_no in self.active_symbol_nos:
