@@ -155,7 +155,7 @@ def get_symbols(plugin):
     port = plugin.get_port(p)
     symbol = port.get_symbol()
     port_range = port.get_range()
-    if not (port_range[0] is None or port_range[1] is None):
+    if not (port_range[0] is None or port_range[1] is None or port_range[2] is None):
       default_val, min_val, max_val = [float(str(v)) for v in port_range]
       symbols.append((symbol, default_val, min_val, max_val))
   return symbols
@@ -237,15 +237,24 @@ def connect_effect(jack_client, effect='', midi_in=''):
       and len(audio_out_ports) == 2
       and len(midi_out_ports) == 1
       and len(audio_in_ports) == 2):
-    jack_client.connect(
-        audio_out_ports[0],
-        audio_in_ports[0],
-        )
-    jack_client.connect(
-        audio_out_ports[1],
-        audio_in_ports[1],
-        )
-    jack_client.connect(
-        midi_out_ports[0],
-        midi_in_ports[0],
-        )
+    try:
+      jack_client.connect(
+          audio_out_ports[0],
+          audio_in_ports[0],
+          )
+    except Exception as e:
+      logger.warning(e)
+    try:
+      jack_client.connect(
+          audio_out_ports[1],
+          audio_in_ports[1],
+          )
+    except Exception as e:
+      logger.warning(e)
+    try:
+      jack_client.connect(
+          midi_out_ports[0],
+          midi_in_ports[0],
+          )
+    except Exception as e:
+      logger.warning(e)

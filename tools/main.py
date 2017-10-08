@@ -118,8 +118,14 @@ class Plugins:
 
   def on_draw(self):
     self.screen.fill((0, 0, 0))
+
+    visible_range = range(
+        max(0, self.selected-3),
+        min(self.selected+4, len(self.plugin_urls)))[:4]
+
     y = 0
-    for i, plugin_url in enumerate(self.plugin_urls):
+    for i in visible_range:
+      plugin_url = self.plugin_urls[i]
       label = str(plugin_url)
       label = label.replace('http://', '')
       label = label if len(label) < 26 else label[:12] + '...' + label[-12:]
@@ -134,9 +140,9 @@ class Plugins:
   def on_pygame_event(self, event):
     if event.type == pygame.KEYDOWN:
       if event.key == 273: # up
-        self.selected -= 1
+        self.selected = max(0, self.selected-1)
       elif event.key == 274: # down
-        self.selected += 1
+        self.selected = min(self.selected+1, len(self.plugin_urls))
       elif event.key == 13: # enter
         plugin_url = str(self.plugin_urls[self.selected])
         self.master.set_active_plugin_url(plugin_url)
