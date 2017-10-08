@@ -12,6 +12,7 @@ FB_DRIVERS = ['fbcon', 'directfb', 'svgalib', 'x11']
 
 class FramebufferUI:
   screen = None
+  clock = None
 
   def init_framebuffer_display(self, fb_drivers=FB_DRIVERS):
     if os.getenv("DISPLAY"):
@@ -46,6 +47,8 @@ class FramebufferUI:
 
     pygame.mouse.set_visible(0)
 
+    self.clock = pygame.time.Clock()
+
     self.screen.fill((0, 0, 0))
     pygame.display.flip()
 
@@ -56,16 +59,12 @@ class FramebufferUI:
 
   def listen(self, handler):
     while True:
-      event = pygame.event.wait()
-      handler(event)
-      if event.type == pygame.QUIT:
-        pygame.quit()
-        break
-
-
-  def fill(self, color):
-    self.screen.fill(color)
-    pygame.display.flip()
+      self.clock.tick(30) # target framerate to wait for
+      for event in pygame.event.get():
+        handler(event)
+        if event.type == pygame.QUIT:
+          pygame.quit()
+          break
 
 
 #

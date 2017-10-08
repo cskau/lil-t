@@ -73,7 +73,14 @@ class ModHostConnection():
     # except Exception:
     #   return None
 
-    return resp.strip('\x00')
+    resp = resp.strip('\x00')
+    if resp.startswith('resp '):
+      resp_parts = resp.split(' ')
+      if len(resp_parts) > 2:
+        return (int(resp_parts[1]), float(resp_parts[2]))
+      return (int(resp_parts[1]), None)
+
+    return (None, resp)
 
 
   def add_plugin(self, plugin_uri, instance_number=0):
@@ -89,11 +96,12 @@ class ModHostConnection():
 
 
   def get_param(self, instance_number, symbol):
-    print('param_get {} {}'.format(instance_number, symbol))
+    logger.debug('param_get {} {}'.format(instance_number, symbol))
     return self.send_command('param_get {} {}'.format(instance_number, symbol))
 
 
   def set_param(self, instance_number, symbol, value):
+    logger.debug('set_param {} {} {}'.format(instance_number, symbol, value))
     return self.send_command('param_set {} {} {}'.format(instance_number, symbol, value))
 
 

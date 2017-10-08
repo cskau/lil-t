@@ -60,7 +60,10 @@ class Model:
 
 
   def get_param(self, channel, symbol):
-    return self.mod_host.get_param(channel, symbol)
+    status, val = self.mod_host.get_param(channel, symbol)
+    if status == 0:
+      return val
+    raise Exception('Got status {}'.format(status))
 
 
   def set_param(self, channel, symbol, value):
