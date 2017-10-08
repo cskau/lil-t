@@ -46,6 +46,7 @@ class Master:
   active_mode = None
   active_channel = 0
   active_plugin_url = ''
+  tapes = None
 
   def __init__(self, model, screen):
     self.model = model
@@ -73,6 +74,7 @@ class Master:
         self.active_mode = Controls(
             self.model, self.screen, self.active_plugin_url, self.active_channel)
       elif event.key == 284: # F3
+        self.tapes = self.tapes if self.tapes else Tapes(self.screen)
         self.active_mode = self.tapes
       elif event.key == 285: # F4
         print('F4')
