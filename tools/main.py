@@ -12,6 +12,7 @@ from fb import FramebufferUI
 from model import Model
 import util
 from util import add_midi_event_listener
+from util import connect_effect
 
 
 DEFAULT_PLUGIN = 'http://drobilla.net/plugins/mda/Piano'
@@ -41,13 +42,16 @@ logger = logging.getLogger(__name__)
 
 class Master:
 
-  modes = []
+  model = None
+  screen = None
   active_mode = None
+  active_channel = 0
+  active_plugin_url = ''
 
   def __init__(self, model, screen):
-    controls = Controls(model, screen, DEFAULT_PLUGIN, 0)
-    self.modes.append(controls)
-    self.active_mode = controls
+    self.model = model
+    self.screen = screen
+    self.active_mode = Plugins(self, model, screen)
 
 
   def on_midi_event(self, midi_input_name, message):
@@ -66,9 +70,10 @@ class Master:
       if event.key == 27: # Esc
         pygame.quit()
       elif event.key == 282: # F1
-        print('F1')
+        self.active_mode = Plugins(self, self.model, self.screen)
       elif event.key == 283: # F2
-        print('F2')
+        self.active_mode = Controls(
+            self.model, self.screen, self.active_plugin_url, self.active_channel)
       elif event.key == 284: # F3
         print('F3')
       elif event.key == 285: # F4
@@ -79,7 +84,72 @@ class Master:
       self.active_mode.on_pygame_event(event)
 
 
+  def set_active_channel(self, channel):
+    self.active_channel = channel
+
+
+  def set_active_plugin_url(self, plugin_url):
+    self.active_plugin_url = plugin_url
+    # hmm..
+    self.model.add_module(
+        self.active_plugin_url,
+        self.active_channel)
+    connect_effect(self.model.jack_client, 'effect_0')
+
+
+class Plugins:
+
+  master = None
+  model = None
+  screen = None
+  font = None
+  plugin_urls = None
+  selected = 0
+
+  def __init__(self, master, model, screen):
+    self.master = master
+    self.model = model
+    self.screen = screen
+
+    self.font = pygame.font.Font(None, 18)
+
+    self.plugin_urls = model.get_plugin_urls()
+
+
+  def on_draw(self):
+    self.screen.fill((0, 0, 0))
+    y = 0
+    for i, plugin_url in enumerate(self.plugin_urls):
+      label = str(plugin_url)
+      label = label.replace('http://', '')
+      label = label if len(label) < 26 else label[:12] + '...' + label[-12:]
+      text_surface = self.font.render(
+          label,
+          False,
+          (255, 0, 0) if i == self.selected else (255, 255, 255))
+      self.screen.blit(text_surface, (10, y))
+      y += 25
+
+
+  def on_pygame_event(self, event):
+    if event.type == pygame.KEYDOWN:
+      if event.key == 273: # up
+        self.selected -= 1
+      elif event.key == 274: # down
+        self.selected += 1
+      elif event.key == 13: # enter
+        plugin_url = str(self.plugin_urls[self.selected])
+        self.master.set_active_plugin_url(plugin_url)
+
+
+  def on_midi_event(self, midi_input_name, message):
+    return
+
+
 class Controls:
+
+  model = None
+  screen = None
 
   def __init__(self, model, screen, plugin_url, channel):
     self.model = model
@@ -153,21 +223,6 @@ class Controls:
 def main():
   model = Model()
   model.clear_modules()
-
-  model.add_module(DEFAULT_PLUGIN, 0)
-
-  model.jack_client.connect(
-      'a2j:LPK25 [24] (capture): LPK25 MIDI 1',
-      'effect_0:event_in',
-      )
-  model.jack_client.connect(
-      'effect_0:left_out',
-      'system:playback_1',
-      )
-  model.jack_client.connect(
-      'effect_0:right_out',
-      'system:playback_2',
-      )
 
   fbui = FramebufferUI()
   fbui.clear((0, 0, 0))

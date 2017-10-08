@@ -201,17 +201,17 @@ def get_all_ports(jack_client):
   return jack_client.get_ports()
 
 
-def connect_effect(jack_client, effect, midi_in='Teensy'):
-  ports = jack_client.get_ports(effect + ':')
+def connect_effect(jack_client, effect='', midi_in=''):
+  # ports = jack_client.get_ports(effect + ':')
 
   midi_in_ports = jack_client.get_ports(
-      effect + ':',
+      effect,
       is_midi=True,
       is_input=True,
       )
 
   audio_out_ports = jack_client.get_ports(
-      effect + ':',
+      effect,
       is_audio=True,
       is_output=True,
       )
