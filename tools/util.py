@@ -201,9 +201,7 @@ def get_all_ports(jack_client):
   return jack_client.get_ports()
 
 
-def connect_effect(jack_client, effect='', midi_in=''):
-  # ports = jack_client.get_ports(effect + ':')
-
+def connect_effect(jack_client, effect='', midi_out=''):
   midi_in_ports = jack_client.get_ports(
       effect,
       is_midi=True,
@@ -217,7 +215,7 @@ def connect_effect(jack_client, effect='', midi_in=''):
       )
 
   midi_out_ports = jack_client.get_ports(
-      midi_in,
+      midi_out,
       is_midi=True,
       is_output=True,
       )
@@ -228,32 +226,26 @@ def connect_effect(jack_client, effect='', midi_in=''):
       is_input=True,
       )
 
-  # print(midi_in_ports)
-  # print(audio_out_ports)
-  # print(midi_out_ports)
-  # print(audio_in_ports)
+  try:
+    jack_client.connect(
+        audio_out_ports[0],
+        audio_in_ports[0],
+        )
+  except Exception as e:
+    logger.warning(e)
 
-  if (len(midi_in_ports) == 1
-      and len(audio_out_ports) == 2
-      and len(midi_out_ports) == 1
-      and len(audio_in_ports) == 2):
+  try:
+    jack_client.connect(
+        audio_out_ports[1],
+        audio_in_ports[1],
+        )
+  except Exception as e:
+    logger.warning(e)
+
+  for midi_out_port in midi_out_ports:
     try:
       jack_client.connect(
-          audio_out_ports[0],
-          audio_in_ports[0],
-          )
-    except Exception as e:
-      logger.warning(e)
-    try:
-      jack_client.connect(
-          audio_out_ports[1],
-          audio_in_ports[1],
-          )
-    except Exception as e:
-      logger.warning(e)
-    try:
-      jack_client.connect(
-          midi_out_ports[0],
+          midi_out_port,
           midi_in_ports[0],
           )
     except Exception as e:

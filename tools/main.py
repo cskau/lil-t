@@ -15,8 +15,6 @@ from util import add_midi_event_listener
 from util import connect_effect
 
 
-DEFAULT_PLUGIN = 'http://drobilla.net/plugins/mda/Piano'
-
 LOG_FILE_PATH = '/home/pi/lil-tk.log'
 
 SYSEX_UP = 0
@@ -94,7 +92,7 @@ class Master:
     self.model.add_module(
         self.active_plugin_url,
         self.active_channel)
-    connect_effect(self.model.jack_client, 'effect_0')
+    connect_effect(self.model.jack_client, 'effect_0:')
 
 
 class Plugins:
