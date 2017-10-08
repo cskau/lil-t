@@ -297,6 +297,7 @@ def main():
   fbui.run_loop(
       master.on_pygame_event,
       master.on_draw,
+      target_framerate=6, # fps
       )
 
 
