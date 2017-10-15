@@ -3,6 +3,8 @@
 The following is an experiment in setting a Raspberry Pi (Zero) up as a
 soft-synth device, hosting LV2 plug-ins.
 
+All examples below will assume Raspbian.
+
 
 ## Examine the system
 List ALSA playback interfaces:
@@ -28,8 +30,8 @@ $ aplay -t raw -r 48000 -c 2 -f S16_LE /dev/zero
 
 ## System setup
 
-If you're using a Raspberry Pi Zero, you can configure overlay to pipe PWM to BCM pins 13 and 18,
-and remove hissing background noise by disabling dithering.
+If you're using a Raspberry Pi Zero, you can configure overlay to pipe PWM to
+BCM pins 13 and 18, and remove hissing background noise by disabling dithering.
 
 Add to `/boot/config.txt`:
 ```
@@ -37,13 +39,24 @@ dtoverlay=pwm-2chan,pin=18,func=2,pin2=13,func2=4
 disable_audio_dither=1
 ```
 
-Note: You'll also need to filter the raw output if you're using the pins directly. I use a simple 2 resistor, 2 capacitor filter.
+Note: You'll also need to filter the raw output if you're using the pins directly.
+I use a simple 2 resistor, 2 capacitor filter.
 Alternatively you can look into I2S audio.
 
 [Supposedly](https://wiki.linuxaudio.org/wiki/raspberrypi)
 disabling CPU scaling can also help remove audio glitches:
 ```
 echo -n performance | sudo tee /sys/devices/system/cpu/cpu0/cpufreq/scaling_governor
+```
+
+While you're at it you might want to stop or disable several system services
+you'll probably not need under normal operation:
+```
+sudo systemctl disable triggerhappy # raspbian hotkey service
+sudo systemctl disable rsyslog
+sudo systemctl disable ntp
+sudo systemctl disable ssh
+sudo systemctl disable avahi-daemon # zero-configuration networking
 ```
 
 
