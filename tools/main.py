@@ -14,6 +14,7 @@ import util
 from util import add_midi_event_listener
 from util import connect_effect
 from tape import Tape
+import tapy
 
 
 LOG_FILE_PATH = '/home/pi/lil-tk.log'
@@ -73,7 +74,7 @@ class Master:
         self.active_mode = Controls(
             self.model, self.screen, self.active_plugin_url, self.active_channel)
       elif event.key == 284: # F3
-        self.tapes = self.tapes if self.tapes else Tapes(self.screen)
+        self.tapes = self.tapes if self.tapes else TapyTapes(self.screen)
         self.active_mode = self.tapes
       elif event.key == 285: # F4
         print('F4')
@@ -99,6 +100,32 @@ class Master:
         self.active_plugin_url,
         self.active_channel)
     connect_effect(self.model.jack_client, 'effect_0:')
+
+
+class TapyTapes:
+
+  screen = None
+
+  def __init__(self, screen):
+    self.screen = screen
+    tapy.setup()
+
+
+  def on_draw(self):
+    self.screen.fill((0, 0, 0))
+    pygame.draw.line(self.screen, (0, 0, 255), (40, 80), (120, 80))
+    pygame.draw.circle(
+        self.screen,
+        (255, 0, 0),
+        (40, 50), 30, 4)
+    pygame.draw.circle(
+        self.screen,
+        (0, 255, 0),
+        (120, 50), 30, 2)
+
+
+  def on_pygame_event(self, event):
+    None
 
 
 class Tapes:
