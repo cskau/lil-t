@@ -6,7 +6,11 @@ from __future__ import print_function
 import logging
 import struct
 import wave
-import StringIO
+
+try:
+  from StringIO import StringIO # Python 2
+except Exception as e:
+  from io import StringIO # Python 3
 
 import jack
 
