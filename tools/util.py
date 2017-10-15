@@ -49,9 +49,12 @@ class ModHostConnection():
     return new_socket
 
 
-  def send_command(self, command):
+  def send_command(self, command, encoding='utf-8'):
     assert self.to_modhost_socket
     assert self.from_modhost_socket
+
+    if not type(command) == bytes:
+      command = bytes(command, encoding)
 
     self.to_modhost_socket.send(command)
 
@@ -72,6 +75,8 @@ class ModHostConnection():
     #     logging.debug('resp: %s', resp)
     # except Exception:
     #   return None
+
+    resp = resp.decode(encoding)
 
     resp = resp.strip('\x00')
     if resp.startswith('resp '):

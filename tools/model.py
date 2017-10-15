@@ -15,6 +15,13 @@ class Model:
 
     #
     self.plugins, self.plugin_map = get_plugins()
+    self.plugin_urls = [p.get_uri() for p in self.plugins]
+
+    self.instrument_plugin_urls = []
+    for plugin in self.plugins:
+      if not str(plugin.get_class()) == 'http://lv2plug.in/ns/lv2core#InstrumentPlugin':
+        continue
+      self.instrument_plugin_urls.append(plugin.get_uri())
 
     #
     self.mod_host = ModHostConnection()
@@ -24,7 +31,11 @@ class Model:
 
 
   def get_plugin_urls(self):
-    return [p.get_uri() for p in self.plugins]
+    return self.plugin_urls
+
+
+  def get_instrument_plugin_urls(self):
+    return self.instrument_plugin_urls
 
 
   def clear_modules(self):

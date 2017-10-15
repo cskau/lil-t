@@ -201,7 +201,7 @@ class Plugins:
 
     self.font = pygame.font.Font(None, 18)
 
-    self.plugin_urls = model.get_plugin_urls()
+    self.plugin_urls = model.get_instrument_plugin_urls()
 
 
   def on_draw(self):
